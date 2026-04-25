@@ -28,25 +28,23 @@ app.post('/api/chat', async (req, res) => {
     const { conversation } = req.body;
     try {
         if (!Array.isArray(conversation)) throw new Error('Conversation must be an array!');
-        
-        const model = ai.getGenerativeModel({ 
-            model: GEMINI_MODEL,
-            systemInstruction: `Nama Anda adalah Bunga. Jawab dengan ramah seakan-akan anda adalah asisten travel yang membantu pengguna untuk merencanakan perjalanan mereka.
-                                Tanyakan mau liburan kemana dan berapa lama, lalu berikan rekomendasi wisata dan itinerary selama di tempat tujuan.`,
-        });
 
         const contents = conversation.map(({ role, text }) => ({
             role,
             parts: [{ text }],
         }));
-
-        const result = await model.generateContent({
+        const response = await ai.models.generateContent({
+            model: GEMINI_MODEL,
             contents,
-            generationConfig: { temperature: 0.7, topK: 20 }
+            config: {
+                temperature: 0.6,
+                top_k: 15,
+                systemInstruction: `Anda adalah customer service toko . Jawab dengan ramah dan tanyakan kebutuhan yang di perlukan.
+                                    , lalu berikan rekomendasi barang yang di sediakan toko.`,
+            }
         });
         
-        const response = await result.response;
-        res.json({ result: response.text() });
+        res.json({ result: response.text });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
